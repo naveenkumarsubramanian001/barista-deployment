@@ -8,6 +8,7 @@ backend/__pycache__/
 backend/.venv/
 backend/*.pyc
 backend/.python-version
+backend/uv.lock
 
 # SQLite databases (persisted in Docker volumes, not in git)
 backend/*.sqlite
@@ -23,3 +24,6 @@ frontend/artifacts/research-platform/dist/
 
 # macOS
 .DS_Store
+
+# Railway generated files
+.railway/
