@@ -9,6 +9,7 @@ WORKDIR /app
 # Copy the entire pnpm workspace root
 COPY frontend/ .
 # Install all workspace dependencies
+ENV CI=true
 RUN pnpm install --frozen-lockfile
 # Set env vars needed by the Vite build. VITE_API_BASE_URL is /api for monolithic
 ENV PORT=5173
