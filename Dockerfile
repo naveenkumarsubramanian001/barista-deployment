@@ -41,6 +41,9 @@ RUN python -m playwright install chromium --with-deps || true
 # Copy python backend code
 COPY backend/ .
 
+# Bake the Environment file into the image
+COPY backend/.env .
+
 # Copy built frontend assets into static/ dir for FastAPI to serve
 COPY --from=frontend-builder /app/artifacts/research-platform/dist/public /app/static
 
