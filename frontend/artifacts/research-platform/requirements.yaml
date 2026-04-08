@@ -1,0 +1,15 @@
+packages:
+  "framer-motion": "For fluid state transitions, staggered lists, and layout animations"
+  "clsx": "For conditional class merging"
+  "tailwind-merge": "For resolving tailwind class conflicts"
+  "date-fns": "For formatting publication dates"
+
+images:
+  - path: "artifacts/research-platform/public/images/mesh-bg.png"
+    description: "Abstract gradient mesh background in deep indigo and slate with soft volumetric lighting, minimal, premium corporate AI feel, highly polished"
+    aspect_ratio: "16:9"
+
+notes:
+  - "Assuming Orval hooks are available in @workspace/api-client-react as per standard configuration"
+  - "Assuming shadcn components are present in @/components/ui/ directory as listed in the project structure"
+  - "Using wouter for routing as requested"

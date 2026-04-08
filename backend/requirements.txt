@@ -1,0 +1,22 @@
+openai
+tavily-python
+fastapi
+pydantic
+python-dotenv
+requests
+beautifulsoup4
+playwright
+langchain-core
+langchain-community
+langgraph
+langchain-ollama
+spacy
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+torch
+transformers
+typing
+langchain-groq
+tldextract
+scikit-fuzzy
+rich
+pytest

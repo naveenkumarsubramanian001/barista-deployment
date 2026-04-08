@@ -1,0 +1,852 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.2.0
+  description: Barista CI API contract (single source for generated clients)
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: search
+  - name: pdf
+  - name: articles
+  - name: report
+  - name: analyzer
+  - name: companies
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required: [status]
+
+  /tips:
+    get:
+      operationId: getTips
+      tags: [search]
+      responses:
+        "200":
+          description: Tips
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tips:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Tip"
+                required: [tips]
+
+  /search:
+    post:
+      operationId: startSearch
+      tags: [search]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: Started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+
+  /workflow/status/{sessionId}:
+    get:
+      operationId: getWorkflowStatus
+      tags: [search]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Workflow status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowStatusResponse"
+
+  /articles/{sessionId}:
+    get:
+      operationId: getArticles
+      tags: [articles]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Articles grouped by category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticlesResponse"
+
+  /article-content:
+    get:
+      operationId: getArticleContent
+      tags: [articles]
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Article body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticleContentResponse"
+
+  /session/{sessionId}:
+    get:
+      operationId: getSession
+      tags: [search]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+
+  /report/{sessionId}:
+    get:
+      operationId: getReport
+      tags: [report]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportResponse"
+
+  /generate-pdf/{sessionId}:
+    post:
+      operationId: generatePdf
+      tags: [pdf]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneratePdfRequest"
+      responses:
+        "200":
+          description: Generation started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratePdfResponse"
+
+  /pdf-status/{sessionId}:
+    get:
+      operationId: getPdfStatus
+      tags: [pdf]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PdfStatusResponse"
+
+  /pdf/download/{sessionId}:
+    get:
+      operationId: downloadPdf
+      tags: [pdf]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF stream
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /analyze/upload:
+    post:
+      operationId: uploadAnalyzeDocument
+      tags: [analyzer]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        "200":
+          description: Upload accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyzeUploadResponse"
+
+  /analyze/status/{sessionId}:
+    get:
+      operationId: getAnalyzeStatus
+      tags: [analyzer]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Analyzer status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyzeStatusResponse"
+
+  /analyze/download/{sessionId}:
+    get:
+      operationId: downloadAnalyzePdf
+      tags: [analyzer]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Analyzer PDF stream
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /companies/:
+    get:
+      operationId: listCompanies
+      tags: [companies]
+      responses:
+        "200":
+          description: Companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Company"
+    post:
+      operationId: createCompany
+      tags: [companies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCompanyRequest"
+      responses:
+        "200":
+          description: Created company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+
+  /companies/import-competitors:
+    post:
+      operationId: importCompetitors
+      tags: [companies]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportCompetitorsRequest"
+      responses:
+        "200":
+          description: Imported competitors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportCompetitorsResponse"
+
+  /companies/notifications:
+    get:
+      operationId: getNotifications
+      tags: [companies]
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationsResponse"
+
+  /companies/notifications/{notificationId}/read:
+    post:
+      operationId: markNotificationRead
+      tags: [companies]
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required: [status]
+
+  /companies/{companyId}:
+    get:
+      operationId: getCompanyDetail
+      tags: [companies]
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Company detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+
+  /companies/{companyId}/updates:
+    get:
+      operationId: getCompanyUpdates
+      tags: [companies]
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Company updates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    $ref: "#/components/schemas/Company"
+                  updates:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CompanyUpdate"
+                required: [company, updates]
+
+  /companies/{companyId}/updates/{updateId}/read:
+    post:
+      operationId: markCompanyUpdateRead
+      tags: [companies]
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: updateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required: [status]
+
+  /companies/{companyId}/scrape:
+    post:
+      operationId: scrapeCompany
+      tags: [companies]
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Scrape queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  update:
+                    $ref: "#/components/schemas/CompanyUpdate"
+                required: [status, update]
+
+  /companies/{companyId}/generate-report:
+    post:
+      operationId: generateCompanyReport
+      tags: [companies]
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateCompanyReportRequest"
+      responses:
+        "200":
+          description: Company report generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  report:
+                    type: object
+                    additionalProperties: true
+                  pdf_url:
+                    type: string
+                    nullable: true
+                required: [session_id, report]
+
+components:
+  schemas:
+    Tip:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        category:
+          type: string
+      required: [id, text, category]
+
+    SearchRequest:
+      type: object
+      properties:
+        query:
+          type: string
+      required: [query]
+
+    SearchResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        status:
+          type: string
+      required: [session_id, status]
+
+    WorkflowStage:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+      required: [id, label, status]
+
+    WorkflowStatusResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        status:
+          type: string
+        current_stage:
+          type: string
+        stages:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowStage"
+        progress_percentage:
+          type: number
+        logs:
+          type: array
+          items:
+            type: string
+      required: [session_id, status, stages, progress_percentage]
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+        session_id:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+        domain:
+          type: string
+        category:
+          type: string
+        score:
+          type: number
+        snippet:
+          type: string
+          nullable: true
+        is_approved:
+          type: boolean
+        default_selected:
+          type: boolean
+        user_selected:
+          type: boolean
+        published_date:
+          type: string
+          nullable: true
+      required: [id, session_id, title, url, domain, category, score, is_approved, default_selected, user_selected]
+
+    ArticlesResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        official_articles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Article"
+        trusted_articles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Article"
+        total_count:
+          type: integer
+      required: [session_id, official_articles, trusted_articles, total_count]
+
+    ArticleContentResponse:
+      type: object
+      properties:
+        url:
+          type: string
+        title:
+          type: string
+          nullable: true
+        content:
+          type: string
+          nullable: true
+        can_embed:
+          type: boolean
+        error:
+          type: string
+          nullable: true
+      required: [url, can_embed]
+
+    SessionResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        query:
+          type: string
+        workflow_status:
+          type: string
+      required: [session_id, query, workflow_status]
+
+    ReportResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        report:
+          type: object
+          additionalProperties: true
+        pdf_url:
+          type: string
+          nullable: true
+      required: [session_id, report]
+
+    GeneratePdfRequest:
+      type: object
+      properties:
+        selected_article_urls:
+          type: array
+          items:
+            type: string
+      required: [selected_article_urls]
+
+    GeneratePdfResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+        pdf_url:
+          type: string
+          nullable: true
+      required: [session_id, status, message]
+
+    PdfStatusResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        status:
+          type: string
+        download_url:
+          type: string
+          nullable: true
+      required: [session_id, status]
+
+    AnalyzeUploadResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+      required: [session_id, status, message]
+
+    AnalyzeStatusResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        status:
+          type: string
+        progress_percentage:
+          type: integer
+        logs:
+          type: array
+          items:
+            type: string
+        report_data:
+          type: object
+          additionalProperties: true
+          nullable: true
+        error:
+          type: string
+          nullable: true
+      required: [session_id, status, progress_percentage, logs]
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        url:
+          type: string
+          nullable: true
+        unread_count:
+          type: integer
+        last_scanned_at:
+          type: string
+          nullable: true
+        next_scanned_at:
+          type: string
+          nullable: true
+      required: [id, name, unread_count]
+
+    CreateCompanyRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+          nullable: true
+      required: [name]
+
+    ImportCompetitorItem:
+      type: object
+      properties:
+        name:
+          type: string
+        domain:
+          type: string
+          nullable: true
+      required: [name]
+
+    ImportCompetitorsRequest:
+      type: object
+      properties:
+        competitors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportCompetitorItem"
+      required: [competitors]
+
+    ImportCompetitorsResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        companies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Company"
+      required: [count, companies]
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        message:
+          type: string
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+      required: [id, title, message, is_read, created_at]
+
+    NotificationsResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        unread_count:
+          type: integer
+      required: [notifications, unread_count]
+
+    CompanyUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        title:
+          type: string
+        url:
+          type: string
+          nullable: true
+        snippet:
+          type: string
+          nullable: true
+        source_type:
+          type: string
+        published_date:
+          type: string
+          nullable: true
+        is_read:
+          type: boolean
+      required: [id, company_id, title, source_type, is_read]
+
+    GenerateCompanyReportRequest:
+      type: object
+      properties:
+        update_ids:
+          type: array
+          items:
+            type: integer
+      required: [update_ids]

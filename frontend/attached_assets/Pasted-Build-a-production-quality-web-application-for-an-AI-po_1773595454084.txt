@@ -1,0 +1,359 @@
+Build a production-quality web application for an AI-powered research and PDF insight generation platform. The UI and interaction style should feel similar to ChatGPT, but the purpose of the product is different: instead of returning only a text answer, the system should collect articles, score them, let the user curate them, and then generate a PDF insight report.
+
+The app must be clean, modern, highly polished, responsive, and ready for real-world use. Focus heavily on UX, state management, transitions, and clarity. The output should include the full frontend application structure, reusable components, page flows, data models, API integration layer, loading states, empty states, and interactive behavior. Use best practices for accessibility, responsiveness, and maintainability.
+
+Core product goal:
+Create a research curation interface where a user can ask about a specific company, specific product, or a general domain/topic. The system then performs a multi-step search workflow, shows progress live, retrieves official and trusted articles, automatically selects the top 3 from each category, allows the user to change those selections, and generates a PDF report where selected articles are analyzed in detail and the unselected approved articles are included in the references section.
+
+The application should include the following major experiences:
+
+1. Landing Page Experience
+Design the landing page in a ChatGPT-inspired style:
+- Large centered search box
+- Rounded corners
+- Elegant shadow
+- Minimalist layout
+- Strong spacing and clean typography
+- A send arrow button placed inside or attached to the right side of the input
+- A “Tips” or “Example Queries” button below the search bar
+- When the tips button is clicked, smoothly expand a panel of example query chips/cards
+- Example queries should cover:
+  - specific company questions
+  - specific product questions
+  - general domain/trend questions
+- Clicking a sample query should immediately populate the search input
+- The page should feel premium and modern, not generic
+
+Example sample queries:
+- “What were the latest product releases from OpenAI?”
+- “Latest official updates from NVIDIA”
+- “General trends in vector databases”
+- “Recent developments in enterprise AI agents”
+- “What is happening in the solar energy sector?”
+
+2. Search Submission Transition
+When the user submits a query:
+- The large centered search bar should animate upward and dock to the top as a sticky header
+- The rest of the page should transition into an active workflow state
+- The user must clearly see that the system is working
+- Show a live workflow progress area in the center of the screen
+- The progress area should reflect multiple backend steps because this app is powered by a multi-agent orchestration system
+- The workflow progress UI should look elegant and informative, not like a simple spinner
+
+Display progress steps such as:
+- Analyzing query
+- Identifying official domains
+- Expanding trusted source pool
+- Fetching candidate URLs
+- Extracting article content
+- Scoring article quality and relevance
+- Classifying into official and trusted sources
+- Selecting top results
+
+Use animated checkmarks, in-progress indicators, and status transitions. The user should feel like they are watching an intelligent system work in real time.
+
+3. Results View and Curation Interface
+Once the search workflow is complete, show the results view.
+
+The results page must include:
+- Sticky top search bar still visible
+- Main content area showing all approved/curated articles
+- Visual separation between:
+  - Official Sources
+  - Trusted External Sources
+
+Use either two columns on desktop or stacked sections with clear headers. Each article should appear as a polished card or browser-like content window.
+
+Each article card must show:
+- title
+- source domain/publisher
+- article category badge (Official or Trusted)
+- discriminator score or confidence score
+- a checkbox for selection
+- a button or clickable area to open the article in-app
+
+Important checkbox behavior:
+- Automatically pre-check the top 3 official articles
+- Automatically pre-check the top 3 trusted external articles
+- All other approved articles should appear unchecked
+- The user must be able to manually select or deselect any article
+- The selection count must update instantly in the UI
+
+Show all approved articles, not only the top 3. The top 3 are just the default selected set.
+
+4. In-App Reader Experience
+When the user clicks an article:
+- Do not open a new browser tab by default
+- Open the article inside the application using a side panel, modal, or split-pane reader
+- On large screens, prefer a right-side drawer or split view
+- On smaller screens, use a full-screen modal reader
+- If iframe embedding is supported, use it
+- If iframe is blocked, show a clean extracted reader mode
+- Also provide an “Open Original” action for the source URL
+
+The reader should clearly display:
+- article title
+- source domain
+- readable content or embedded page
+- back/close button
+
+5. PDF Generation Action
+The results page must include a sticky bottom floating action bar.
+
+The action bar should:
+- remain visible as the user scrolls
+- show the number of selected articles
+- include a strong call-to-action button such as:
+  “Generate PDF with X Selected Insights”
+
+Behavior:
+- If zero articles are selected, disable the generate button and show a subtle hint
+- If at least one article is selected, enable the button
+- On click, start the PDF generation flow
+- Show a loading/progress state during PDF generation
+- Then show a success state with options to preview or download the PDF
+
+6. PDF Logic Requirements
+This must be reflected in the application logic and described clearly in code comments and architecture.
+
+Selected articles:
+- treated as primary insight sources
+- analyzed deeply in the generated PDF
+- used in the main report body
+
+Approved but unselected articles:
+- included in the references section only
+- not deeply analyzed in the main body
+
+Rejected or filtered-out articles:
+- should not appear in the main results interface unless there is an explicit admin/debug mode
+
+7. Required API Integration
+Create a frontend architecture that integrates with a backend API, ideally FastAPI-based.
+
+Support these endpoints:
+
+GET /api/tips
+Purpose:
+Returns example queries for the landing page.
+
+POST /api/search
+Request body:
+{
+  "query": "user query here"
+}
+Response:
+{
+  "session_id": "unique-session-id",
+  "status": "started"
+}
+
+GET /api/workflow/status/{session_id}
+Purpose:
+Streams or polls workflow progress.
+Prefer SSE or WebSocket support if possible.
+The frontend should support live event updates from this endpoint.
+
+GET /api/articles/{session_id}
+Purpose:
+Returns all approved articles grouped into:
+- official_articles
+- trusted_articles
+
+Each article object should include fields like:
+- title
+- url
+- domain
+- score
+- default_selected
+- category
+- optional preview snippet
+
+POST /api/generate-pdf/{session_id}
+Request body:
+{
+  "selected_article_urls": ["url1", "url2", "url3"]
+}
+Purpose:
+Starts PDF generation using selected URLs as primary insight sources.
+
+GET /api/download-pdf/{session_id}
+Purpose:
+Returns the generated PDF for download or preview.
+
+Recommended additional endpoint:
+GET /api/article-content?url=...
+Purpose:
+Returns extracted content for reader mode if iframe display is not possible.
+
+Recommended additional endpoint:
+GET /api/session/{session_id}
+Purpose:
+Allows restoring UI state if the page is refreshed.
+
+8. Data Modeling Requirements
+Reflect these entities in the codebase and state layer:
+
+SearchSession:
+- session_id
+- query
+- created_at
+- workflow_status
+- current_stage
+- pdf_status
+
+Article:
+- id
+- session_id
+- title
+- url
+- domain
+- category
+- score
+- snippet
+- extracted_content
+- is_approved
+- default_selected
+- user_selected
+
+PDFReport:
+- session_id
+- status
+- file_url or download endpoint
+- created_at
+
+9. Technical Architecture Requirements
+Generate the app using a modern frontend stack.
+
+Preferred stack:
+- Next.js or React
+- TypeScript
+- Tailwind CSS
+- clean component architecture
+- reusable UI components
+- strong state management
+- API abstraction layer
+- accessible design patterns
+
+Recommended frontend patterns:
+- React Query or SWR for fetching/caching
+- Zustand or Context for local workflow/session state
+- Framer Motion for transitions
+- component-level loading, error, and empty states
+- modular folder structure
+- typed API contracts
+
+If generating a single-file prototype, still structure the code clearly with:
+- component sections
+- mock API layer
+- fake data hooks
+- clear separation of concerns
+
+10. Visual Design Requirements
+The visual design should feel premium and contemporary.
+
+Design characteristics:
+- clean white or subtly tinted background
+- excellent spacing
+- strong hierarchy
+- rounded containers
+- elegant borders
+- soft shadows
+- minimal but refined motion
+- polished interaction states
+- visually clear source categorization
+- desktop and mobile responsive layout
+
+The interface should feel like:
+- AI-native
+- trustworthy
+- research-focused
+- calm and professional
+- modern SaaS quality
+
+11. Accessibility and UX Requirements
+Include:
+- keyboard accessible input and buttons
+- visible focus states
+- ARIA-friendly controls where appropriate
+- readable contrast
+- responsive layout
+- mobile-friendly transitions
+- empty states
+- no-results states
+- retry states for API failures
+- graceful fallback if live workflow stream disconnects
+
+12. Workflow State Requirements
+The app must support these major UI states:
+- initial landing state
+- expanded tips state
+- submitting query state
+- live workflow/progress state
+- results loaded state
+- article reader open state
+- PDF generating state
+- PDF success state
+- API error state
+- empty/no approved articles state
+
+13. Edge Case Handling
+Build for these cases:
+- fewer than 3 official articles available
+- fewer than 3 trusted articles available
+- duplicate articles
+- article content unavailable
+- iframe blocked
+- workflow status stream interrupted
+- PDF generation failure
+- page refresh after search started
+- no articles pass the discriminator
+- very long article titles
+- users selecting all or none
+
+14. What to Generate
+Generate the complete UI implementation for this web app, including:
+- landing page
+- animated search transition
+- progress workflow view
+- curated article result sections
+- article cards with checkboxes
+- in-app article reader
+- sticky bottom action bar
+- PDF generation flow
+- success/download state
+- mock API integration or real API client layer
+- reusable components
+- responsive styles
+- sample data for demo/testing
+
+If possible, generate:
+- a production-grade component tree
+- a realistic page layout
+- mock backend responses
+- typed models/interfaces
+- comments explaining where real backend integration occurs
+
+15. High-Level Interaction Flow
+The final app should support this exact user flow:
+- User lands on homepage
+- User explores tips or enters query
+- User submits query
+- Search bar animates to top
+- Workflow progress appears live
+- Results are grouped into official and trusted sections
+- Top 3 in each group are pre-selected
+- User opens articles in-app and adjusts checkbox selections
+- User clicks generate PDF
+- Selected articles become detailed insights
+- Other approved articles become references
+- User previews or downloads the PDF
+
+16. Output Quality Requirement
+Do not generate a shallow mockup. Generate a realistic, detailed, implementation-ready web application with thoughtful UX, polished transitions, and complete interaction logic. The code should be organized, visually polished, and suitable as a strong prototype or foundation for production.
+
+If backend services are not fully implemented, simulate them with realistic mock data and event-driven progress so the frontend still demonstrates the full experience end-to-end.
+
+Also include helpful placeholder labels and demo content so the app looks alive immediately after running.
+
+The final result should feel like a premium AI research workspace, not a basic form page.
