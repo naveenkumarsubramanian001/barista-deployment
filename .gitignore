@@ -1,0 +1,25 @@
+# Secrets — never commit these
+backend/.env
+frontend/.env.local
+frontend/artifacts/research-platform/.env.local
+
+# Python caches
+backend/__pycache__/
+backend/.venv/
+backend/*.pyc
+backend/.python-version
+
+# SQLite databases (persisted in Docker volumes, not in git)
+backend/*.sqlite
+backend/*.db
+
+# Node / pnpm
+frontend/node_modules/
+frontend/artifacts/research-platform/node_modules/
+frontend/pnpm-lock.yaml
+
+# Build output
+frontend/artifacts/research-platform/dist/
+
+# macOS
+.DS_Store
